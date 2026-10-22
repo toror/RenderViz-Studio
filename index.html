@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RenderViz Studio | Visualización Arquitectónica & Renders 3D</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fuente Inter y Cinzel desde Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0f1115',
+                            surface: '#181b20',
+                            card: '#20242c',
+                            border: '#2e3440',
+                            accent: '#c9a063', // Tono bronce/dorado sofisticado
+                            accentHover: '#b58c50',
+                            textMuted: '#94a3b8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cinzel', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos personalizados y utilidades de animación */
+        body {
+            background-color: #0f1115;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #f3e7e1 0%, #c9a063 50%, #8a642e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-bg {
+            background-image: linear-gradient(to bottom, rgba(15, 17, 21, 0.75), rgba(15, 17, 21, 0.95)), 
+                              url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .glass-card {
+            background: rgba(24, 27, 32, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-nav {
+            background: rgba(15, 17, 21, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(201, 160, 99, 0.15);
+        }
+
+        .portfolio-item {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .portfolio-item:hover .portfolio-overlay {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Modal custom zoom */
+        .modal-active {
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-brand-accent selection:text-black">
+
+    <!-- HEADER / NAVEGACIÓN -->
+    <header class="fixed top-0 left-0 w-full z-50 glass-nav transition-all duration-300" id="header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-lg border border-brand-accent/40 bg-brand-surface flex items-center justify-center group-hover:border-brand-accent transition-colors">
+                    <span class="font-serif font-bold text-xl text-brand-accent">R</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-serif font-bold text-lg tracking-wider text-white group-hover:text-brand-accent transition-colors">RENDERVIZ</span>
+                    <span class="text-[10px] tracking-[0.25em] text-brand-accent uppercase font-medium">Studio 3D</span>
+                </div>
+            </a>
+
+            <!-- Menú Escritorio -->
+            <nav class="hidden md:flex items-center gap-8">
+                <a href="#inicio" class="text-sm font-medium text-gray-300 hover:text-brand-accent transition-colors">Inicio</a>
+                <a href="#servicios" class="text-sm font-medium text-gray-300 hover:text-brand-accent transition-colors">Servicios</a>
+                <a href="#portafolio" class="text-sm font-medium text-gray-300 hover:text-brand-accent transition-colors">Portafolio</a>
+                <a href="#contacto" class="text-sm font-medium text-gray-300 hover:text-brand-accent transition-colors">Contacto</a>
+            </nav>
+
+            <!-- CTA & Hamburguesa -->
+            <div class="flex items-center gap-4">
+                <a href="#contacto" class="hidden sm:inline-flex items-center justify-center px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-black bg-brand-accent hover:bg-brand-accentHover rounded-md transition-all duration-300 shadow-lg shadow-brand-accent/20 hover:scale-[1.02]">
+                    Solicitar Cotización
+                </a>
+                
+                <button id="menu-btn" class="md:hidden text-gray-300 hover:text-white p-2 rounded-lg focus:outline-none" aria-label="Abrir Menú">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menú Móvil -->
+        <div id="mobile-menu" class="hidden md:hidden bg-brand-surface border-b border-brand-border px-4 pt-4 pb-6 space-y-3">
+            <a href="#inicio" class="block text-base font-medium text-gray-300 hover:text-brand-accent py-2 transition-colors">Inicio</a>
+            <a href="#servicios" class="block text-base font-medium text-gray-300 hover:text-brand-accent py-2 transition-colors">Servicios</a>
+            <a href="#portafolio" class="block text-base font-medium text-gray-300 hover:text-brand-accent py-2 transition-colors">Portafolio</a>
+            <a href="#contacto" class="block text-base font-medium text-gray-300 hover:text-brand-accent py-2 transition-colors">Contacto</a>
+            <a href="#contacto" class="w-full text-center block mt-4 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-black bg-brand-accent hover:bg-brand-accentHover rounded-md transition-all">
+                Solicitar Cotización
+            </a>
+        </div>
+    </header>
+
+    <!-- SECCIÓN HERO -->
+    <section id="inicio" class="hero-bg min-h-screen flex items-center justify-center pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <!-- Efecto decorativo de cuadrícula sutil -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none"></div>
+
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <!-- Badge superior -->
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand-accent/30 bg-brand-surface/80 text-brand-accent text-xs tracking-widest uppercase mb-6 backdrop-blur-md">
+                <span class="w-2 h-2 rounded-full bg-brand-accent animate-pulse"></span>
+                Visualización Arquitectónica High-End
+            </div>
+
+            <h1 class="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 font-serif leading-tight">
+                Damos vida hyper-realista a tus <span class="gold-gradient-text">Proyectos Arquitectónicos</span>
+            </h1>
+
+            <p class="text-base sm:text-xl text-brand-textMuted font-light max-w-2xl mx-auto mb-10 leading-relaxed">
+                Transformamos planos en experiencias visuales fotorrealistas de alta fidelidad. Renders exteriores, interiores y recorridos virtuales 3D para desarrolladores y arquitectos.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+                <a href="#portafolio" class="w-full sm:w-auto px-8 py-4 text-xs font-bold uppercase tracking-widest text-black bg-brand-accent hover:bg-brand-accentHover rounded-md transition-all shadow-xl shadow-brand-accent/20 flex items-center justify-center gap-2">
+                    Explorar Portafolio <i class="fa-solid fa-arrow-right text-xs"></i>
+                </a>
+                <a href="#servicios" class="w-full sm:w-auto px-8 py-4 text-xs font-bold uppercase tracking-widest text-white border border-brand-border hover:border-brand-accent bg-brand-surface/50 hover:bg-brand-surface rounded-md transition-all flex items-center justify-center">
+                    Nuestros Servicios
+                </a>
+            </div>
+
+            <!-- Stats rápidas -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mt-16 pt-10 border-t border-brand-border/60 max-w-3xl mx-auto">
+                <div>
+                    <span class="block text-2xl sm:text-3xl font-bold text-white font-serif">500+</span>
+                    <span class="text-xs text-brand-textMuted uppercase tracking-wider mt-1 block">Renders Entregados</span>
+                </div>
+                <div>
+                    <span class="block text-2xl sm:text-3xl font-bold text-white font-serif">99%</span>
+                    <span class="text-xs text-brand-textMuted uppercase tracking-wider mt-1 block">Precisión en Detalles</span>
+                </div>
+                <div class="col-span-2 md:col-span-1">
+                    <span class="block text-2xl sm:text-3xl font-bold text-white font-serif">10+</span>
+                    <span class="text-xs text-brand-textMuted uppercase tracking-wider mt-1 block">Años de Experiencia</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN SERVICIOS -->
+    <section id="servicios" class="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-xs font-semibold text-brand-accent uppercase tracking-[0.25em] mb-3">Especialidades</h2>
+            <p class="text-3xl sm:text-4xl font-bold font-serif text-white tracking-tight">Servicios de Visualización 3D</p>
+            <div class="w-16 h-0.5 bg-brand-accent mx-auto mt-4"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Servicio 1 -->
+            <div class="glass-card p-8 rounded-xl border border-brand-border/80 hover:border-brand-accent/50 transition-all duration-300 hover:-translate-y-2 group">
+                <div class="w-14 h-14 rounded-lg bg-brand-surface border border-brand-accent/30 text-brand-accent flex items-center justify-center text-2xl mb-6 group-hover:bg-brand-accent group-hover:text-black transition-colors">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <h3 class="text-xl font-bold font-serif mb-3 text-white">Renderizado Exterior</h3>
+                <p class="text-sm text-brand-textMuted leading-relaxed">
+                    Imágenes fotorrealistas de edificios, residencias y complejos urbanos integradas con iluminación natural e hiper-detalles del entorno.
+                </p>
+            </div>
+
+            <!-- Servicio 2 -->
+            <div class="glass-card p-8 rounded-xl border border-brand-border/80 hover:border-brand-accent/50 transition-all duration-300 hover:-translate-y-2 group">
+                <div class="w-14 h-14 rounded-lg bg-brand-surface border border-brand-accent/30 text-brand-accent flex items-center justify-center text-2xl mb-6 group-hover:bg-brand-accent group-hover:text-black transition-colors">
+                    <i class="fa-solid fa-couch"></i>
+                </div>
+                <h3 class="text-xl font-bold font-serif mb-3 text-white">Diseño Interior 3D</h3>
+                <p class="text-sm text-brand-textMuted leading-relaxed">
+                    Representación detallada de espacios interiores con diseño de iluminación, materiales, texturas realistas y mobiliario de catálogo.
+                </p>
+            </div>
+
+            <!-- Servicio 3 -->
+            <div class="glass-card p-8 rounded-xl border border-brand-border/80 hover:border-brand-accent/50 transition-all duration-300 hover:-translate-y-2 group">
+                <div class="w-14 h-14 rounded-lg bg-brand-surface border border-brand-accent/30 text-brand-accent flex items-center justify-center text-2xl mb-6 group-hover:bg-brand-accent group-hover:text-black transition-colors">
+                    <i class="fa-solid fa-vr-cardboard"></i>
+                </div>
+                <h3 class="text-xl font-bold font-serif mb-3 text-white">Recorridos 360° VR</h3>
+                <p class="text-sm text-brand-textMuted leading-relaxed">
+                    Tours interactivos e inmersivos que permiten al cliente explorar cada rincón del proyecto antes de ser construido.
+                </p>
+            </div>
+
+            <!-- Servicio 4 -->
+            <div class="glass-card p-8 rounded-xl border border-brand-border/80 hover:border-brand-accent/50 transition-all duration-300 hover:-translate-y-2 group">
+                <div class="w-14 h-14 rounded-lg bg-brand-surface border border-brand-accent/30 text-brand-accent flex items-center justify-center text-2xl mb-6 group-hover:bg-brand-accent group-hover:text-black transition-colors">
+                    <i class="fa-solid fa-film"></i>
+                </div>
+                <h3 class="text-xl font-bold font-serif mb-3 text-white">Animación 3D</h3>
+                <p class="text-sm text-brand-textMuted leading-relaxed">
+                    Video renders de nivel cinematográfico con movimientos de cámara dinámicos ideales para marketing inmobiliario.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN PORTAFOLIO / GALERÍA -->
+    <section id="portafolio" class="py-24 bg-brand-surface/50 border-y border-brand-border/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+                <div>
+                    <h2 class="text-xs font-semibold text-brand-accent uppercase tracking-[0.25em] mb-3">Galería</h2>
+                    <p class="text-3xl sm:text-4xl font-bold font-serif text-white tracking-tight">Proyectos Destacados</p>
+                </div>
+                
+                <!-- Filtros -->
+                <div class="flex flex-wrap gap-2 mt-6 md:mt-0" id="portfolio-filters">
+                    <button class="filter-btn active px-4 py-2 rounded-md text-xs font-medium uppercase tracking-wider bg-brand-accent text-black transition-all" data-filter="todos">Todos</button>
+                    <button class="filter-btn px-4 py-2 rounded-md text-xs font-medium uppercase tracking-wider bg-brand-card text-brand-textMuted hover:text-white transition-all" data-filter="exterior">Exteriores</button>
+                    <button class="filter-btn px-4 py-2 rounded-md text-xs font-medium uppercase tracking-wider bg-brand-card text-brand-textMuted hover:text-white transition-all" data-filter="interior">Interiores</button>
+                    <button class="filter-btn px-4 py-2 rounded-md text-xs font-medium uppercase tracking-wider bg-brand-card text-brand-textMuted hover:text-white transition-all" data-filter="aereo">Vistas Aéreas</button>
+                </div>
+            </div>
+
+            <!-- Grid de Portafolio -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="portfolio-grid">
+                
+                <!-- ITEM 1: Exterior -->
+                <div class="portfolio-item group relative h-80 rounded-xl overflow-hidden bg-brand-card shadow-lg" data-category="exterior">
+                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80" alt="Residencia Moderna Exterior" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="portfolio-overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-all duration-300 p-6 flex flex-col justify-end">
+                        <span class="text-xs font-semibold text-brand-accent uppercase tracking-wider">Exterior</span>
+                        <h3 class="text-xl font-bold text-white font-serif mb-1">Villa Horizon</h3>
+                        <p class="text-xs text-gray-300">Residencia Unifamiliar - Tulum, México</p>
+                        <button onclick="openModal('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80', 'Villa Horizon', 'Renderizado Exterior')" class="mt-4 self-start inline-flex items-center gap-2 text-xs font-bold text-brand-accent hover:underline">
+                            Ver Render Completo <i class="fa-solid fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ITEM 2: Interior -->
+                <div class="portfolio-item group relative h-80 rounded-xl overflow-hidden bg-brand-card shadow-lg" data-category="interior">
+                    <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80" alt="Interiorismo de Lujo" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="portfolio-overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-all duration-300 p-6 flex flex-col justify-end">
+                        <span class="text-xs font-semibold text-brand-accent uppercase tracking-wider">Interior</span>
+                        <h3 class="text-xl font-bold text-white font-serif mb-1">Penthouse Minimalista</h3>
+                        <p class="text-xs text-gray-300">Diseño de Interiores - Madrid, España</p>
+                        <button onclick="openModal('https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=80', 'Penthouse Minimalista', 'Diseño de Interiores')" class="mt-4 self-start inline-flex items-center gap-2 text-xs font-bold text-brand-accent hover:underline">
+                            Ver Render Completo <i class="fa-solid fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ITEM 3: Aéreo -->
+                <div class="portfolio-item group relative h-80 rounded-xl overflow-hidden bg-brand-card shadow-lg" data-category="aereo">
+                    <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80" alt="Vista Aérea Arquitectónica" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="portfolio-overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-all duration-300 p-6 flex flex-col justify-end">
+                        <span class="text-xs font-semibold text-brand-accent uppercase tracking-wider">Vista Aérea</span>
+                        <h3 class="text-xl font-bold text-white font-serif mb-1">Masterplan Bayview</h3>
+                        <p class="text-xs text-gray-300">Desarrollo Urbano - Miami, USA</p>
+                        <button onclick="openModal('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1600&q=80', 'Masterplan Bayview', 'Vista Aérea')" class="mt-4 self-start inline-flex items-center gap-2 text-xs font-bold text-brand-accent hover:underline">
+                            Ver Render Completo <i class="fa-solid fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ITEM 4: Exterior -->
+                <div class="portfolio-item group relative h-80 rounded-xl overflow-hidden bg-brand-card shadow-lg" data-category="exterior">
+                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80" alt="Fachada Nocturna" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="portfolio-overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-all duration-300 p-6 flex flex-col justify-end">
+                        <span class="text-xs font-semibold text-brand-accent uppercase tracking-wider">Exterior Nocturno</span>
+                        <h3 class="text-xl font-bold text-white font-serif mb-1">Torre Lumina</h3>
+                        <p class="text-xs text-gray-300">Fachada Comercial - Bogotá, Colombia</p>
+                        <button onclick="openModal('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=80', 'Torre Lumina', 'Render Nocturno')" class="mt-4 self-start inline-flex items-center gap-2 text-xs font-bold text-brand-accent hover:underline">
+                            Ver Render Completo <i class="fa-solid fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ITEM 5: Interior -->
+                <div class="portfolio-item group relative h-80 rounded-xl overflow-hidden bg-brand-card shadow-lg" data-category="interior">
+                    <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80" alt="Cocina de Lujo Render 3D" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="portfolio-overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-all duration-300 p-6 flex flex-col justify-end">
+                        <span class="text-xs font-semibold text-brand-accent uppercase tracking-wider">Interior</span>
+                        <h3 class="text-xl font-bold text-white font-serif mb-1">Cocina Marble Concept</h3>
+                        <p class="text-xs text-gray-300">Visualización de Materiales - Santiago, Chile</p>
+                        <button onclick="openModal('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1600&q=80', 'Cocina Marble Concept', 'Diseño Interior')" class="mt-4 self-start inline-flex items-center gap-2 text-xs font-bold text-brand-accent hover:underline">
+                            Ver Render Completo <i class="fa-solid fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ITEM 6: Exterior -->
+                <div class="portfolio-item group relative h-80 rounded-xl overflow-hidden bg-brand-card shadow-lg" data-category="exterior">
+                    <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" alt="Casa de Playa Render 3D" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="portfolio-overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-all duration-300 p-6 flex flex-col justify-end">
+                        <span class="text-xs font-semibold text-brand-accent uppercase tracking-wider">Exterior</span>
+                        <h3 class="text-xl font-bold text-white font-serif mb-1">Casa del Mar</h3>
+                        <p class="text-xs text-gray-300">Arquitectura Clic - Punta del Este, Uruguay</p>
+                        <button onclick="openModal('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=80', 'Casa del Mar', 'Renderizado Exterior')" class="mt-4 self-start inline-flex items-center gap-2 text-xs font-bold text-brand-accent hover:underline">
+                            Ver Render Completo <i class="fa-solid fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN CONTACTO Y PROCESO -->
+    <section id="contacto" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            
+            <!-- Información de Contacto -->
+            <div class="lg:col-span-5 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xs font-semibold text-brand-accent uppercase tracking-[0.25em] mb-3">Hablemos</h2>
+                    <p class="text-3xl sm:text-4xl font-bold font-serif text-white tracking-tight mb-6">¿Tienes un proyecto en mente?</p>
+                    <p class="text-brand-textMuted text-sm mb-8 leading-relaxed">
+                        Envíanos los planos CAD, modelos 3D o referencias de tu proyecto. Nos pondremos en contacto contigo en menos de 24 horas con una propuesta personalizada.
+                    </p>
+
+                    <div class="space-y-6">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-brand-surface border border-brand-border flex items-center justify-center text-brand-accent shrink-0 mt-1">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs uppercase tracking-wider text-brand-textMuted mb-1">Correo Electrónico</h4>
+                                <a href="mailto:contacto@rendervizstudio.com" class="text-white hover:text-brand-accent transition-colors font-medium text-sm">contacto@rendervizstudio.com</a>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-brand-surface border border-brand-border flex items-center justify-center text-brand-accent shrink-0 mt-1">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs uppercase tracking-wider text-brand-textMuted mb-1">Teléfono / WhatsApp</h4>
+                                <a href="tel:+573001234567" class="text-white hover:text-brand-accent transition-colors font-medium text-sm">+57 (300) 123-4567</a>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-brand-surface border border-brand-border flex items-center justify-center text-brand-accent shrink-0 mt-1">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs uppercase tracking-wider text-brand-textMuted mb-1">Oficina Central</h4>
+                                <p class="text-white font-medium text-sm">Av. Arquitectura #102, Distrito Creativo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 pt-8 border-t border-brand-border/60">
+                    <h4 class="text-xs uppercase tracking-wider text-brand-textMuted mb-4">Síguenos</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-brand-surface border border-brand-border hover:border-brand-accent text-gray-300 hover:text-brand-accent flex items-center justify-center transition-all"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-brand-surface border border-brand-border hover:border-brand-accent text-gray-300 hover:text-brand-accent flex items-center justify-center transition-all"><i class="fa-brands fa-behance"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-brand-surface border border-brand-border hover:border-brand-accent text-gray-300 hover:text-brand-accent flex items-center justify-center transition-all"><i class="fa-brands fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Contacto -->
+            <div class="lg:col-span-7 glass-card p-8 sm:p-10 rounded-2xl border border-brand-border">
+                <form id="contact-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label for="nombre" class="block text-xs uppercase tracking-wider text-brand-textMuted mb-2">Nombre Completo *</label>
+                            <input type="text" id="nombre" required placeholder="Ej. Juan Pérez" class="w-full bg-brand-dark/80 border border-brand-border rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-accent transition-colors">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-xs uppercase tracking-wider text-brand-textMuted mb-2">Correo Electrónico *</label>
+                            <input type="email" id="email" required placeholder="tu@email.com" class="w-full bg-brand-dark/80 border border-brand-border rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-accent transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label for="tipo-proyecto" class="block text-xs uppercase tracking-wider text-brand-textMuted mb-2">Tipo de Proyecto</label>
+                            <select id="tipo-proyecto" class="w-full bg-brand-dark/80 border border-brand-border rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-accent transition-colors">
+                                <option value="exterior">Render Exterior</option>
+                                <option value="interior">Diseño de Interiores 3D</option>
+                                <option value="recorrido">Recorrido Virtual 360°</option>
+                                <option value="animacion">Animación 3D</option>
+                                <option value="otro">Otro / Consultoría</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="plazo" class="block text-xs uppercase tracking-wider text-brand-textMuted mb-2">Plazo Estimado</label>
+                            <select id="plazo" class="w-full bg-brand-dark/80 border border-brand-border rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-accent transition-colors">
+                                <option value="urgente">Urgente (&lt; 1 semana)</option>
+                                <option value="normal">Estándar (1-3 semanas)</option>
+                                <option value="flexible">Flexible</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="mensaje" class="block text-xs uppercase tracking-wider text-brand-textMuted mb-2">Detalles del Proyecto *</label>
+                        <textarea id="mensaje" rows="4" required placeholder="Describe brevemente las dimensiones, número de vistas requeridas o cualquier detalle especial..." class="w-full bg-brand-dark/80 border border-brand-border rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-accent transition-colors resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 text-xs font-bold uppercase tracking-widest text-black bg-brand-accent hover:bg-brand-accentHover rounded-lg transition-all shadow-lg shadow-brand-accent/20">
+                        Enviar Solicitud de Cotización
+                    </button>
+                    
+                    <!-- Mensaje de respuesta -->
+                    <div id="form-message" class="hidden p-4 rounded-lg text-sm text-center"></div>
+                </form>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-black border-t border-brand-border/60 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded border border-brand-accent/40 bg-brand-surface flex items-center justify-center">
+                    <span class="font-serif font-bold text-sm text-brand-accent">R</span>
+                </div>
+                <span class="font-serif font-bold tracking-wider text-white text-sm">RENDERVIZ STUDIO</span>
+            </div>
+
+            <p class="text-xs text-brand-textMuted text-center">
+                © 2026 RenderViz Studio. Todos los derechos reservados. Visualización Arquitectónica Profesional.
+            </p>
+
+            <div class="flex gap-6 text-xs text-brand-textMuted">
+                <a href="#" class="hover:text-white transition-colors">Política de Privacidad</a>
+                <a href="#" class="hover:text-white transition-colors">Términos de Servicio</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL PARA VER IMÁGENES COMPLETAS -->
+    <div id="image-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="relative max-w-5xl w-full bg-brand-surface rounded-2xl overflow-hidden border border-brand-border shadow-2xl">
+            <button onclick="closeModal()" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 text-white hover:text-brand-accent flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="max-h-[80vh] overflow-hidden bg-black flex items-center justify-center">
+                <img id="modal-img" src="" alt="Render ampliado" class="max-h-[80vh] w-auto object-contain">
+            </div>
+            <div class="p-6 bg-brand-surface flex justify-between items-center">
+                <div>
+                    <h3 id="modal-title" class="text-lg font-bold font-serif text-white"></h3>
+                    <p id="modal-category" class="text-xs text-brand-accent uppercase tracking-wider"></p>
+                </div>
+                <a href="#contacto" onclick="closeModal()" class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-black bg-brand-accent rounded hover:bg-brand-accentHover transition-colors">
+                    Cotizar Proyecto Similar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT DE INTERACCIÓN -->
+    <script>
+        // Control de menú móvil
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Cerrar menú móvil al hacer click en algún enlace
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        // Filtros de Portafolio
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const portfolioItems = document.querySelectorAll('.portfolio-item');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remover clase activa
+                filterBtns.forEach(b => {
+                    b.classList.remove('active', 'bg-brand-accent', 'text-black');
+                    b.classList.add('bg-brand-card', 'text-brand-textMuted');
+                });
+
+                // Activar botón seleccionado
+                btn.classList.add('active', 'bg-brand-accent', 'text-black');
+                btn.classList.remove('bg-brand-card', 'text-brand-textMuted');
+
+                const filter = btn.getAttribute('data-filter');
+
+                portfolioItems.forEach(item => {
+                    if (filter === 'todos' || item.getAttribute('data-category') === filter) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Modal de Vista Previa de Imágenes
+        const modal = document.getElementById('image-modal');
+        const modalImg = document.getElementById('modal-img');
+        const modalTitle = document.getElementById('modal-title');
+        const modalCategory = document.getElementById('modal-category');
+
+        function openModal(imgSrc, title, category) {
+            modalImg.src = imgSrc;
+            modalTitle.textContent = title;
+            modalCategory.textContent = category;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('modal-active');
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.classList.remove('modal-active');
+        }
+
+        // Cerrar modal al presionar la tecla ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Procesamiento del Formulario de Contacto
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const messageBox = document.getElementById('form-message');
+            
+            // Simular envío
+            messageBox.className = 'p-4 rounded-lg text-sm text-center bg-brand-accent/20 border border-brand-accent text-brand-accent block mt-4';
+            messageBox.textContent = '¡Gracias por contactarnos! Hemos recibido tu solicitud y te escribiremos en breve.';
+
+            // Limpiar formulario
+            document.getElementById('contact-form').reset();
+
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 6000);
+        }
+    </script>
+</body>
+</html>
